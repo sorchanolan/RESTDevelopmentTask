@@ -1,1 +1,3 @@
-.stack-work
+*.iml
+.idea/modules.xml
+*.xml
