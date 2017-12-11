@@ -7,10 +7,10 @@ ADD_WORKER_URL = "http://127.0.0.1:5000/add_worker"
 
 class Worker(object):
 	def __init__(self):
-		self.worker_id = register_worker(self)
+		self.worker_id = register_worker()
 
 
-def register_worker(Worker):
+def register_worker():
     response = requests.get(ADD_WORKER_URL)
     worker_id = response.json()['new_worker']
     print 'Worker id assigned: {0}'.format(worker_id)
