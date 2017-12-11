@@ -15,10 +15,10 @@
 # resolver:
 #  name: custom-snapshot
 #  location: "./custom-snapshot.yaml"
-resolver: nightly-2016-12-10
+resolver: lts-8.24
 
-docker:
-  enable: false # warning!
+#docker:
+ # enable: false # warning!
 
 # stack image container 
 image:
