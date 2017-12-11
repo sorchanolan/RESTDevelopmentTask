@@ -17,8 +17,8 @@
 #  location: "./custom-snapshot.yaml"
 resolver: lts-8.24
 
-docker:
-  enable: false # warning!
+#docker:
+ # enable: false # warning!
 
 # stack image container 
 image:

@@ -10,7 +10,6 @@ maintainer:          Stephen.Barrett@tcd.ie
 copyright:           2016
 category:            test
 build-type:          Simple
-extra-source-files:  README.md
 cabal-version:       >=1.10
 
 library
