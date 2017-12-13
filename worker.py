@@ -11,24 +11,22 @@ ADD_WORKER_URL = "http://127.0.0.1:5000/add_worker"
 REPO_URL = "https://github.com/sorchanolan/DistributedFileSystem"
 commits_list = []
 repo = None
-count = 0
 running = True
-path = "WorkerRepo_" + WORKER_ID
-
 
 def steal_work():
 	global count, running
-	count = 0
 	while(running):
 		response = requests.get(GET_WORK_URL, json={"worker_id": WORKER_ID})
+		commit = response.json()['commit']
 		if response.json()['finished'] is True:
+			print "Worker {0} finished".format(WORKER_ID)
 			running = False
 			break
+		elif commit == "wait":
+			#print "Worker {0} waiting...".format(WORKER_ID)
+			pass
 		else:
-			commit = response.json()['commit']
-			count += 1 
 			execute_task(commit)
-
 
 def execute_task(commit):
 	complexity_sum = 0
@@ -37,8 +35,7 @@ def execute_task(commit):
 	for filename in filenames:
 		complexity_sum += compute_cyclo_complex(filename)
 		num_files += 1
-	requests.post(GET_WORK_URL, json={'average_complexity': get_average(num_files, complexity_sum)})
-
+	requests.post(GET_WORK_URL, json={'average_complexity': get_average(num_files, complexity_sum), 'worker_id': WORKER_ID, 'commit': commit})
 
 def get_files(commit):
 	git = repo.git
@@ -49,7 +46,6 @@ def get_files(commit):
 			if '.java' in filename:
 				files.append(dirpath + '/' + filename)
 	return files
-
 
 def compute_cyclo_complex(file_name):
 	file_info = lizard.analyze_file(file_name)
@@ -65,11 +61,11 @@ def add_worker():
 	global WORKER_ID
 	response = requests.get(ADD_WORKER_URL)
 	worker_id = response.json()['new_worker']
-	print 'Worker id assigned: {0}'.format(worker_id)
+	print 'Worker {0} assigned'.format(WORKER_ID)
 	WORKER_ID = str(worker_id)
 
-def get_repo(path):
-	print 'Cloning repository {0}'.format(REPO_URL)
+def get_repo():
+	print 'Cloning repository {0} for worker {1}'.format(REPO_URL, WORKER_ID)
 	if not os.path.exists(path):
 		os.makedirs(path)
 	if not os.listdir(path):
@@ -80,6 +76,7 @@ def get_repo(path):
 
 if __name__ == '__main__':
 	add_worker()
-	repo = get_repo(path)
+	path = "WorkerRepo_" + WORKER_ID
+	repo = get_repo()
 	steal_work() 
 
