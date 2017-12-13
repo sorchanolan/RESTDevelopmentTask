@@ -2,3 +2,6 @@
 .idea/modules.xml
 *.xml
 venv/*
+ManagerRepo
+ManagerRepo/*
+Worker_Repo_*

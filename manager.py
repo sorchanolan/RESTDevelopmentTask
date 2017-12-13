@@ -2,7 +2,7 @@ import os
 
 from git import Repo
 from flask_restful import Resource, Api
-from flask import Flask
+from flask import Flask, request
 
 NUM_WORKERS = 0
 REPO_URL = "https://github.com/sorchanolan/DistributedFileSystem"
@@ -22,7 +22,7 @@ class Manager(Resource):
 
 		if commits_index < len(commits_list):
 			commit = commits_list[commits_index]
-			print "{0}".format(str(commit))
+			#print "{0}".format(str(commit))
 			commits_index += 1
 		else:
 			commit = None
@@ -33,6 +33,7 @@ class Manager(Resource):
 	def post(self):
 		response = request.get_json()
 		results_list.append(response['average_complexity'])
+		print "{0}".format(response['average_complexity'])
 
 
 class AddWorker(Resource):

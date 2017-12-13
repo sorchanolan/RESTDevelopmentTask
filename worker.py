@@ -1,4 +1,7 @@
-import requests, lizard
+import requests, lizard, os
+
+from git import Repo
+from os import walk
 from flask_restful import Resource, Api
 from flask import Flask, request
 
@@ -9,62 +12,53 @@ REPO_URL = "https://github.com/sorchanolan/DistributedFileSystem"
 commits_list = []
 repo = None
 count = 0
-
-class Worker(object):
-
-	def __init__(self):
-		add_worker()
-		self.running = True
-		self.path = "WorkerRepo_" + WORKER_ID
-		self.repo = get_repo(path)
-		self.num_files = 0
-		self.complexity_sum = 0
+running = True
+path = "WorkerRepo_" + WORKER_ID
 
 
-	def steal_work(self):
-		global count 
+def steal_work():
+	global count, running
+	count = 0
+	while(running):
+		response = requests.get(GET_WORK_URL, json={"worker_id": WORKER_ID})
+		if response.json()['finished'] is True:
+			running = False
+			break
+		else:
+			commit = response.json()['commit']
+			count += 1 
+			execute_task(commit)
 
-		while(self.running):
-			response = requests.get(GET_WORK_URL, json={"worker_id": WORKER_ID})
-			if response.json()['finished'] is True:
-				self.running = False
-				break
-			else:
-				commit = response.json()['commit']
-				count += 1 
-				self.execute_task(commit)
+
+def execute_task(commit):
+	complexity_sum = 0
+	num_files = 0
+	filenames = get_files(commit)
+	for filename in filenames:
+		complexity_sum += compute_cyclo_complex(filename)
+		num_files += 1
+	requests.post(GET_WORK_URL, json={'average_complexity': get_average(num_files, complexity_sum)})
 
 
-	def execute_task(self, commit):
-		complexity_sum = 0
-		num_files = 0
-		filenames = get_files(commit)
+def get_files(commit):
+	git = repo.git
+	git.checkout(commit)
+	files = []
+	for (dirpath, dirnames, filenames) in walk(path):
 		for filename in filenames:
-			sum_complexity += self.compute_cyclo_complex(filename)
-			num_files += 1
-		
-        if num_files is 0:
-        	avg_complexity = 0
-        else:
-        	avg_complexity = complexity_sum / num_files
-
-    	requests.post(GET_WORK_URL, json={'average_complexity': avg_complexity})
+			if '.java' in filename:
+				files.append(dirpath + '/' + filename)
+	return files
 
 
-	def get_files(self, commit):
-		git = self.repo.git
-		git.checkout(commit)
-		files = []
-		for (dirpath, dirnames, filenames) in walk(self.path):
-			for filename in filenames:
-				if '.java' in filename:
-					files.append(dirpath + '/' + filename)
-		return files
+def compute_cyclo_complex(file_name):
+	file_info = lizard.analyze_file(file_name)
+	return file_info.average_cyclomatic_complexity
 
-
-	def compute_cyclo_complex(self, file_name):
-		file_info = lizard.analyse_file(file_name)
-		return file_info.average_cyclomatic_complexity
+def get_average(num_files, sum):
+	if num_files is 0:
+		return 0
+	return sum / num_files
 
 
 def add_worker():
@@ -85,6 +79,7 @@ def get_repo(path):
 	return repo
 
 if __name__ == '__main__':
-    worker = Worker()
-    worker.steal_work() 
+	add_worker()
+	repo = get_repo(path)
+	steal_work() 
 
