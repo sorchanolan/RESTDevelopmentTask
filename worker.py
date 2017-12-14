@@ -8,7 +8,7 @@ from flask import Flask, request
 WORKER_ID = ""
 GET_WORK_URL = "http://127.0.0.1:5000"
 ADD_WORKER_URL = "http://127.0.0.1:5000/add_worker"
-REPO_URL = "https://github.com/sorchanolan/DistributedFileSystem"
+REPO_URL = "https://github.com/parcel-bundler/parcel"
 commits_list = []
 repo = None
 running = True
@@ -43,7 +43,7 @@ def get_files(commit):
 	files = []
 	for (dirpath, dirnames, filenames) in walk(path):
 		for filename in filenames:
-			if '.java' in filename:
+			if '.js' in filename:
 				files.append(dirpath + '/' + filename)
 	return files
 

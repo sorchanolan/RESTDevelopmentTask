@@ -1,4 +1,4 @@
-import os, sys
+import os, sys, time
 
 from git import Repo
 from flask_restful import Resource, Api
@@ -6,7 +6,7 @@ from flask import Flask, request
 from random import randint
 
 NUM_WORKERS = 0
-REPO_URL = "https://github.com/sorchanolan/DistributedFileSystem"
+REPO_URL = "https://github.com/parcel-bundler/parcel"
 commits_list = []
 commits_not_returned = []
 commits_index = 0
@@ -14,6 +14,8 @@ repo = None
 finished = False
 results_list = []
 results_map = dict()
+start_time = 0.0
+end_time = 0.0
 
 app = Flask(__name__)
 api = Api(app)
@@ -21,8 +23,11 @@ api = Api(app)
 class Manager(Resource):
 
 	def get(self): 
-		global commits_list, commits_index, finished
+		global commits_list, commits_index, finished, start_time
+
 		if NUM_WORKERS == int(num_workers_required):
+			if commits_index == 0:
+				start_time = time.time()
 			if commits_index < len(commits_list):
 				print "Sending out commit {0}".format(commits_index)
 				commit = commits_list[commits_index]
@@ -32,13 +37,12 @@ class Manager(Resource):
 				if len(commits_not_returned) > 0:
 					commit = commits_list[randint(0, len(commits_not_returned) - 1)]
 			else:
-				print "Finished"
 				commit = None
 				finished = True
-				print results_map
 		else:
-			print "Waiting, {0} workers out of {1}".format(NUM_WORKERS, num_workers_required)
 			commit = "wait"
+			print "Waiting, {0} workers out of {1}".format(NUM_WORKERS, num_workers_required)
+
 		return {"commit": commit, "finished": finished}
 
 
@@ -48,6 +52,11 @@ class Manager(Resource):
 		commits_not_returned.remove(response['commit'])
 		results_map[response['commit']] = response['average_complexity']
 		print "{0} of {1} returned by {2}".format(response['average_complexity'], response['commit'], response['worker_id'])
+		if len(commits_not_returned) == 0:
+			end_time = time.time()
+			print "Finished - {0} workers taking {1} seconds".format(num_workers_required, str(end_time - start_time))
+			print "Average cyclomatic complexity for repo is {0}".format(get_average_cyclo_complex())
+			finished()
 
 
 class AddWorker(Resource):
@@ -67,6 +76,23 @@ def get_repo(path):
 	else:
 		repo = Repo(path)
 	return repo
+
+def finished():
+	global end_time
+		
+	# func = request.environ.get('werkzeug.server.shutdown')
+	# if func is None:
+	# 	raise RuntimeError('Not running with the Werkzeug Server')
+	# func()
+
+def get_average_cyclo_complex():
+	global results_map
+	sum = 0
+	for key, value in results_map.iteritems():
+		sum += value
+	if len(results_map) != 0:
+		return sum / len(results_map)
+	return 0 
 
 api.add_resource(Manager, '/')
 api.add_resource(AddWorker, '/add_worker')
