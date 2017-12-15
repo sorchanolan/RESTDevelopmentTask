@@ -9,3 +9,4 @@ The manager must be set up first, and runs as a REST API. On setup, it clones th
 
 ## Worker.py
 The worker nodes register with the manager to get their unique worker id, before cloning the repository. They then begin requesting work, being told to wait until all workers have been added. When all have been added, they repeatedly request work within a while loop until all commits have been sent out. When they get a commit, they execute the task by checking out the commit sent to them in the repo, then getting all files in each commit. The cyclomatic complexity is computed for each file, and the average is calculated then sent back to the manager, along with a request for another commit. 
+
