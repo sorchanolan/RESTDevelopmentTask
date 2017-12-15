@@ -79,16 +79,15 @@ def get_repo(path):
 
 def finished():
 	global end_time
-		
-	# func = request.environ.get('werkzeug.server.shutdown')
-	# if func is None:
-	# 	raise RuntimeError('Not running with the Werkzeug Server')
-	# func()
+	func = request.environ.get('werkzeug.server.shutdown')
+	if func is None:
+		raise RuntimeError('Not running with the Werkzeug Server')
+	func()
 
 def get_average_cyclo_complex():
 	global results_map
 	sum = 0
-	for key, value in results_map.iteritems():
+	for key, value in results_map.items():
 		sum += value
 	if len(results_map) != 0:
 		return sum / len(results_map)

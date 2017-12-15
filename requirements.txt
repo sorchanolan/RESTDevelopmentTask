@@ -1,7 +1,7 @@
 flask
 flask-restful
 requests
-radon
 gitpython
 werkzeug
 lizard
+pdb

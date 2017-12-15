@@ -4,4 +4,4 @@
 venv/*
 ManagerRepo
 ManagerRepo/*
-Worker_Repo_*
+WorkerRepo_*

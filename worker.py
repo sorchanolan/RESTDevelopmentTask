@@ -17,6 +17,7 @@ def steal_work():
 	global count, running
 	while(running):
 		response = requests.get(GET_WORK_URL, json={"worker_id": WORKER_ID})
+		print "{0}".format(str(response))
 		commit = response.json()['commit']
 		if response.json()['finished'] is True:
 			print "Worker {0} finished".format(WORKER_ID)
