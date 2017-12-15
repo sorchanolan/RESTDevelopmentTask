@@ -56,7 +56,6 @@ class Manager(Resource):
 			end_time = time.time()
 			print "Finished - {0} workers taking {1} seconds".format(num_workers_required, str(end_time - start_time))
 			print "Average cyclomatic complexity for repo is {0}".format(get_average_cyclo_complex())
-			finished()
 
 
 class AddWorker(Resource):
@@ -76,13 +75,6 @@ def get_repo(path):
 	else:
 		repo = Repo(path)
 	return repo
-
-def finished():
-	global end_time
-	func = request.environ.get('werkzeug.server.shutdown')
-	if func is None:
-		raise RuntimeError('Not running with the Werkzeug Server')
-	func()
 
 def get_average_cyclo_complex():
 	global results_map
